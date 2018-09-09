@@ -1,0 +1,94 @@
+//onOpen C -> S
+{
+  "type": "auth",
+  "params": {
+    "version": 7,
+    "site_key": "9Dvc7G3HNoQooy922EzrHY5cdK57QOqP",
+    "type": "anonymous", //"user", "token"
+    "user": null, //username if type == user
+    "goal": 0, //hash goal if type == token
+    "opt_in":"1535695068.d3b61d11aef6c9ab1987428444feca95" //Without this if not AuthedMine
+  }
+}
+
+//onOpen-Reply S -> C
+{
+  "type": "authed",
+  "params": {
+    "token": "", //if type == token
+    "hashes": 0 //total hashes of current user if type == user (?)
+  }
+}
+
+//Job S -> C
+{
+  "type": "job",
+  "params": {
+    "job_id": "542492068652063",
+    "blob": "0707998e9edc055c022dd408ffe8e243fe9e6fb24e38a63c18873f492e34ffd2d0df6e8d8f569b0000000080a0d1d017dcc6117b6a9ba2f072074cb4e780e8f9fcc1f4b35f95febda8ae9801",
+    "target": "ffffff00"
+  }
+}
+
+//Hash C -> S
+{
+  "type":"submit",
+  "params": {
+    "version": 7,
+    "job_id": "542492068652063",
+    "nonce": "d18a9d70",
+    "result": "0dc5e2a1a4f35ccad192b36421991ade743d7f200709c5b125712381c44ecf00"
+  }
+}
+
+//Hash-Reply S -> C
+{
+  "type": "hash_accepted",
+  "params": {
+    "hashes": 256 //Increase from 0
+  }
+}
+
+//onError S -> C
+{
+  "type": "error",
+  "params": {
+    "error": "" //Error details
+  }
+}
+
+//verify S -> C
+{
+  "type": "verify",
+  "params": {
+    "verify_id": 611010523,
+    "result": "2e7aa4d28ee6bca8e37b004d1bf3daf933d89c3101ca796f6051395ed6624b00",
+    "nonce":"f57659d0",
+    "blob":"0707e581a5dc05423762d98bc9d4a4b2ba5c657c6750e5123a43d277bea2668e5bb8f7edae8c5700000000ccbd8419c081f5145b6c2b164e84d3007379a0cbe2e9ce89588573d7bced016003"
+  }
+}
+
+//verifyResult C -> S
+//Otherwise, an "invalid-hash banned" packet will be sent (?)
+{
+  "type": "verified",
+  "params": {
+    verify_id: 611010523,
+    verified: true,
+    result: "2e7aa4d28ee6bca8e37b004d1bf3daf933d89c3101ca796f6051395ed6624b00"
+  }
+}
+
+//InvalidHash S -> C
+{
+  "type": "invalid_hash",
+  "params": {
+    "banned": true
+  }
+}
+
+//Banned S -> C
+{
+  "type": "banned",
+  "params": {}
+}

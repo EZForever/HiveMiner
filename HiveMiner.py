@@ -144,9 +144,9 @@ def WorkerFunc(WorkerNo):
         Hash = libch.cryptohive_hash_v0
       Job["jobChanged"] &= ~(1 << WorkerNo)
 
-    nonce = random.randint(0, 0xffffffff).to_bytes(length = 4, byteorder = "little")
+    nonce = random.randint(0, 0xffffffff).to_bytes(length = 4, byteorder = "big")
     #if DEBUG: print("[D][CLI] nonce = " + binascii.hexlify(nonce).decode())
-    for i in range(0, 3):
+    for i in range(0, 4):
       blob[i + 39] = nonce[i]
     Hash(ctypes.byref(blob), ctypes.byref(result), ctypes.sizeof(blob));
     #if DEBUG: print("[D][CLI] result = " + binascii.hexlify(result.raw).decode())

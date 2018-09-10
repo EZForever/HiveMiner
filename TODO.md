@@ -1,5 +1,5 @@
 ## TODO ##
-- [ ] **@Make it work (STILL invalid_hash)**  
+- [ ] **Make it work (STILL invalid_hash)**  
 - [x] Multi-threading  
 - [ ] Change thread affinity / multi-process for better performance  
   

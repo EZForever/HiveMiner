@@ -2,6 +2,7 @@
 - [x] Make it work  
 - [x] Multi-threading  
 - [ ] ~~Change thread affinity / multi-process for better performance~~  
+- [ ] Continue working on libcryptohive (libcryptohive/TODO.md)  
   
 ### How to implement thread affinity changing ###
  * https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-getcurrentthread

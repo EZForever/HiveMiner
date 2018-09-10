@@ -81,7 +81,7 @@ def ProcSvr(Msg):
         targetFull[i] = 0xff
     else:
       targetFull = target
-    #if DEBUG: print("[D][SVR] target = " + binascii.hexlify(targetFull).decode())
+    if DEBUG: print("[D][SVR] target = " + binascii.hexlify(targetFull).decode())
     Job = {
       "job_id": MsgData["params"]["job_id"],
       "blob": binascii.unhexlify(MsgData["params"]["blob"]),
@@ -137,7 +137,7 @@ def WorkerFunc(WorkerNo):
       if DEBUG: print("[D][CLI] %d: New job" % WorkerNo)
       blob = ctypes.create_string_buffer(len(Job["blob"]))
       for i in range(0, ctypes.sizeof(blob)): blob[i] = Job["blob"][i]
-      #if DEBUG: print("[D][CLI] blob = " + binascii.hexlify(blob.raw).decode())
+      if DEBUG: print("[D][CLI] blob = " + binascii.hexlify(blob.raw).decode())
       if blob[i] == 7:
         Hash = libch.cryptohive_hash_v1
       else:
@@ -145,14 +145,15 @@ def WorkerFunc(WorkerNo):
       Job["jobChanged"] &= ~(1 << WorkerNo)
 
     nonce = random.randint(0, 0xffffffff).to_bytes(length = 4, byteorder = "big")
-    #if DEBUG: print("[D][CLI] nonce = " + binascii.hexlify(nonce).decode())
     for i in range(0, 4):
       blob[i + 39] = nonce[i]
     Hash(ctypes.byref(blob), ctypes.byref(result), ctypes.sizeof(blob));
-    #if DEBUG: print("[D][CLI] result = " + binascii.hexlify(result.raw).decode())
 
     if MeetsTarget(result.raw, Job["target"]):
       print("[I][CLI] %d: Hash found" % WorkerNo)
+      if DEBUG:
+        print("[D][CLI] nonce = " + binascii.hexlify(nonce).decode())
+        print("[D][CLI] result = " + binascii.hexlify(result.raw).decode())
       Ret = {
         "type":"submit",
         "params": {

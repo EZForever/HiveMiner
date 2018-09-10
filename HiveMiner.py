@@ -1,5 +1,5 @@
 import threading
-import multiprocessing
+import os
 import ctypes
 import time
 import random
@@ -16,10 +16,10 @@ LIBCH = "libcryptohive.dll"
 #LIBCH = "libcryptohive.so"
 
 #Number of worker threads (depends on your CPU by default)
-THREADS = multiprocessing.cpu_count() #FIXME: How to get physical core number?
+THREADS = int(os.cpu_count() / 2) #FIXME: How to get physical core number?
 
 #Show [D] outputs
-DEBUG = True
+DEBUG = False
 
 #Show websocket traces
 #You might want to redirect output to elsewhere if set to True
@@ -96,9 +96,9 @@ def ProcSvr(Msg):
     Ret = {
       "type": "verified",
       "params": {
-        verify_id: MsgData["params"]["verify_id"], #BUG: NameError: name 'verify_id' is not defined
-        verified: True,
-        result: MsgData["params"]["result"]
+        "verify_id": MsgData["params"]["verify_id"],
+        "verified": True,
+        "result": MsgData["params"]["result"]
       }
     }
     QSend.put(Ret)
@@ -129,12 +129,12 @@ def WorkerFunc(WorkerNo):
   except:
     print("[F][CLI] %d: libCryptoHive could not be initialized" % WorkerNo)
     return
-  print("[I][CLI] %d: libCryptoHive initialized from %s" % WorkerNo, LIBCH)
+  if DEBUG: print("[D][CLI] %d: libCryptoHive initialized from %s" % (WorkerNo, LIBCH))
 
   result = ctypes.create_string_buffer(32)
   while EndFlag:
     if Job["jobChanged"] & 1 << WorkerNo:
-      print("[I][CLI] %d: New job" % WorkerNo)
+      if DEBUG: print("[D][CLI] %d: New job" % WorkerNo)
       blob = ctypes.create_string_buffer(len(Job["blob"]))
       for i in range(0, ctypes.sizeof(blob)): blob[i] = Job["blob"][i]
       #if DEBUG: print("[D][CLI] blob = " + binascii.hexlify(blob.raw).decode())
@@ -219,9 +219,15 @@ def main():
   print("[I] HiveMiner Dev - Running with %d threads" % THREADS)
   print("[I] For testing purposes only - it's too slow")
   if TRACE: websocket.enableTrace(True)
+
+  if not THREADS:
+    print("[F][WS] No usable core. Please change THREADS to a constant.")
+    return
+
   WSRecv = threading.Thread(name = "WSRecv", target = WSRecvFunc)
   WSRecv.setDaemon(True)
   WSRecv.start()
+
   try:
    print("[I][WS] Send thread ready")
    while WSRecv.isAlive():
@@ -232,6 +238,7 @@ def main():
      except:
        print("[E][WS] SEND FAILED" + Msg)
   except KeyboardInterrupt:
+    #BUG: Ctrl-C doesn't work well
     print("[I] ^C Received")
   EndFlag = False
   quit(0)

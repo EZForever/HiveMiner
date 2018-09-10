@@ -1,7 +1,7 @@
 ## TODO ##
-- [ ] **Make it work (STILL invalid_hash)**  
+- [x] Make it work  
 - [x] Multi-threading  
-- [ ] Change thread affinity / multi-process for better performance  
+- [ ] ~~Change thread affinity / multi-process for better performance~~  
   
 ### How to implement thread affinity changing ###
  * https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-getcurrentthread

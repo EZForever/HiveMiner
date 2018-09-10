@@ -1,15 +1,15 @@
 # HiveMiner #
-ʹ�� [libcryptohive](https://github.com/EZForever/libcryptohive) ʵ�ֵ�CoinHive�ڿ����
+使用 [libcryptohive](https://github.com/EZForever/libcryptohive) 实现的CoinHive挖矿程序
   
-## ʹ�÷��� ##
-*ע�⣺  
-����������ڸ��˲�����;�������߲���֤�����Ƿ����BUG���Ƿ����ȶ����С�  
-���ǵ�~~�㹻�����ٶȣ�60:6��~~���ȶ����أ���������������ҵ�ڿ�*  
+## 使用方法 ##
+*注意：  
+本程序仅用于个人测试用途，开发者不保证程序是否存在BUG或是否能稳定运行。  
+考虑到 ~~足够糟糕的速度（60:6）~~ 不稳定因素，本程序不适用于商业挖矿。*  
 1. `pip install websocket-client`
-2. ����libcryptohive��Դ�루���Ӽ��ϣ�������
-3. �޸� `HiveMiner.py` �е� `SITEKEY` �� `LIBCH` Ϊ�Լ���Ҫ��ֵ
+2. 下载libcryptohive的源码（链接见上）并编译
+3. 修改 `HiveMiner.py` 中的 `SITEKEY` 和 `LIBCH` 为自己想要的值
 4. `python HiveMiner.py`
-һ�ݲ�������CoinHiveЭ��ο��μ� `CoinHiveProtocol.json`
+一份不完整的CoinHive协议参考参见 `CoinHiveProtocol.json`
   
-## ��Դ���� ##
+## 开源许可 ##
 [GLWTPL](https://github.com/me-shaon/GLWTPL/blob/master/LICENSE_zh-CN)  

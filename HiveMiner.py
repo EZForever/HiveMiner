@@ -1,4 +1,5 @@
 import threading
+import multiprocessing
 import ctypes
 import time
 import random
@@ -14,8 +15,11 @@ SITEKEY = "9Dvc7G3HNoQooy922EzrHY5cdK57QOqP"
 LIBCH = "libcryptohive.dll"
 #LIBCH = "libcryptohive.so"
 
+#Number of worker threads (depends on your CPU by default)
+THREADS = multiprocessing.cpu_count() #FIXME: How to get physical core number?
+
 #Show [D] outputs
-DEBUG = False
+DEBUG = True
 
 #Show websocket traces
 #You might want to redirect output to elsewhere if set to True
@@ -39,7 +43,7 @@ Job = {
   "job_id": "",
   "blob": b"",
   "target": b"",
-  "jobChanged": False
+  "jobChanged": 0
 }
 
 EndFlag = True
@@ -82,7 +86,7 @@ def ProcSvr(Msg):
       "job_id": MsgData["params"]["job_id"],
       "blob": binascii.unhexlify(MsgData["params"]["blob"]),
       "target": targetFull,
-      "jobChanged": True
+      "jobChanged": (1 << THREADS) - 1
     }
 
   elif MsgData["type"] == "verify":
@@ -113,24 +117,24 @@ def MeetsTarget(result, target):
     elif result[ri] < target[ti]: return True
   return False
 
-def WorkerFunc():
+def WorkerFunc(WorkerNo):
   global Job
-  print("[I][CLI] Worker thread ready")
-  while Job["job_id"] == "": time.sleep(0.1)
+  print("[I][CLI] %d: Worker thread ready" % WorkerNo)
+  while Job["job_id"] == "" and EndFlag: time.sleep(0.1)
 
   try:
     ctypes.cdll.LoadLibrary(LIBCH)
     libch = ctypes.cdll.libcryptohive
-    libch.cryptohive_create() #TODO: Where to libch.cryptohive_destroy() ?
+    libch.cryptohive_create()
   except:
-    print("[F][CLI] libCryptoHive could not be initialized")
+    print("[F][CLI] %d: libCryptoHive could not be initialized" % WorkerNo)
     return
-  print("[I][CLI] libCryptoHive initialized from " + LIBCH)
+  print("[I][CLI] %d: libCryptoHive initialized from %s" % WorkerNo, LIBCH)
 
   result = ctypes.create_string_buffer(32)
   while EndFlag:
-    if Job["jobChanged"]:
-      print("[I][CLI] New job")
+    if Job["jobChanged"] & 1 << WorkerNo:
+      print("[I][CLI] %d: New job" % WorkerNo)
       blob = ctypes.create_string_buffer(len(Job["blob"]))
       for i in range(0, ctypes.sizeof(blob)): blob[i] = Job["blob"][i]
       #if DEBUG: print("[D][CLI] blob = " + binascii.hexlify(blob.raw).decode())
@@ -138,7 +142,7 @@ def WorkerFunc():
         Hash = libch.cryptohive_hash_v1
       else:
         Hash = libch.cryptohive_hash_v0
-      Job["jobChanged"] = False
+      Job["jobChanged"] &= ~(1 << WorkerNo)
 
     nonce = random.randint(0, 0xffffffff).to_bytes(length = 4, byteorder = "little")
     #if DEBUG: print("[D][CLI] nonce = " + binascii.hexlify(nonce).decode())
@@ -148,7 +152,7 @@ def WorkerFunc():
     #if DEBUG: print("[D][CLI] result = " + binascii.hexlify(result.raw).decode())
 
     if MeetsTarget(result.raw, Job["target"]):
-      print("[I][CLI] Hash found")
+      print("[I][CLI] %d: Hash found" % WorkerNo)
       Ret = {
         "type":"submit",
         "params": {
@@ -159,7 +163,11 @@ def WorkerFunc():
         }
       }
       QSend.put(Ret)
-  print("[I][CLI] Worker thread stopped")
+  try:
+    libch.cryptohive_destroy()
+  except:
+    pass
+  print("[I][CLI] %d: Worker thread stopped" % WorkerNo)
 
 def WSRecvFunc():
   global SocketWS
@@ -173,9 +181,11 @@ def WSRecvFunc():
     return
   print("[I][WS] Connected")
 
-  Worker = threading.Thread(name = "Worker", target = WorkerFunc)
-  Worker.setDaemon(True)
-  Worker.start()
+  Workers = [None] * THREADS
+  for i in range(0, THREADS):
+    Workers[i] = threading.Thread(name = "Worker %d" % i, target = WorkerFunc, args = (i, ))
+    Workers[i].setDaemon(True)
+    Workers[i].start()
 
   Ret = {
     "type": "auth",
@@ -206,7 +216,7 @@ def WSRecvFunc():
 
 def main():
   global SocketWS, EndFlag
-  print("[I] libCH-Miner v0.0.1 Dev")
+  print("[I] HiveMiner Dev - Running with %d threads" % THREADS)
   print("[I] For testing purposes only - it's too slow")
   if TRACE: websocket.enableTrace(True)
   WSRecv = threading.Thread(name = "WSRecv", target = WSRecvFunc)

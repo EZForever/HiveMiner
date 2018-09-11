@@ -1,3 +1,4 @@
+#Note: This is the "slower" version, but it's more stable. Will remove soon.
 import threading
 import os
 import ctypes
@@ -129,46 +130,41 @@ def WorkerFunc(WorkerNo):
     ctypes.cdll.LoadLibrary(LIBCH)
     libch = ctypes.cdll.libcryptohive
     libch.cryptohive_create()
-    libch.cryptohive_pInput.restype = ctypes.POINTER(ctypes.c_char * 84)
-    libch.cryptohive_pOutput.restype = ctypes.POINTER(ctypes.c_char * 32)
-    blob = libch.cryptohive_pInput().contents
-    result = libch.cryptohive_pOutput().contents
   except:
     print("[F][CLI] %d: libCryptoHive could not be initialized" % WorkerNo)
     return
   if DEBUG: print("[D][CLI] %d: libCryptoHive initialized from %s" % (WorkerNo, LIBCH))
 
+  result = ctypes.create_string_buffer(32)
   while True:
     if Job["jobChanged"] & 1 << WorkerNo:
       if DEBUG: print("[D][CLI] %d: New job" % WorkerNo)
-
-      for i in range(0, len(Job["blob"])): blob[i] = Job["blob"][i]
-
+      blob = ctypes.create_string_buffer(len(Job["blob"]))
+      for i in range(0, ctypes.sizeof(blob)): blob[i] = Job["blob"][i]
       if blob[0] == b'\x07':
-        Hash = libch.cryptohive_hash_v1_Q
+        Hash = libch.cryptohive_hash_v1
       else:
-        Hash = libch.cryptohive_hash_v0_Q
-
+        Hash = libch.cryptohive_hash_v0
       Job["jobChanged"] &= ~(1 << WorkerNo)
 
     nonce = random.randint(0, 0xffffffff).to_bytes(length = 4, byteorder = "big")
     for i in range(0, 4):
       blob[i + 39] = nonce[i]
 
-    Hash()
+    Hash(ctypes.byref(blob), ctypes.byref(result), ctypes.sizeof(blob));
 
     if MeetsTarget(result.raw, Job["target"]):
       print("[I][CLI] %d: Hash found" % WorkerNo)
       if DEBUG:
         print("[D][CLI] nonce = " + binascii.hexlify(nonce).decode())
-        print("[D][CLI] result = " + binascii.hexlify(result).decode())
+        print("[D][CLI] result = " + binascii.hexlify(result.raw).decode())
       Ret = {
         "type":"submit",
         "params": {
           "version": 7,
           "job_id": Job["job_id"],
           "nonce": binascii.hexlify(nonce).decode(),
-          "result": binascii.hexlify(result).decode()
+          "result": binascii.hexlify(result.raw).decode()
         }
       }
       QSend.put(Ret)
@@ -226,7 +222,7 @@ def WSRecvFunc():
 def main():
   global SocketWS
   print("[I] HiveMiner Dev - Running with %d threads" % THREADS)
-  print("[I] For testing purposes only - it's unstable")
+  print("[I] For testing purposes only - it's too slow")
   if TRACE: websocket.enableTrace(True)
 
   if not THREADS:

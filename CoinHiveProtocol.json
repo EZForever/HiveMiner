@@ -4,10 +4,10 @@
   "params": {
     "version": 7,
     "site_key": "9Dvc7G3HNoQooy922EzrHY5cdK57QOqP",
-    "type": "anonymous", //"user", "token"
-    "user": null, //username if type == user
-    "goal": 0, //hash goal if type == token
-    "opt_in":"1535695068.d3b61d11aef6c9ab1987428444feca95" //Without this if not AuthedMine
+    "type": "anonymous", /* "user", "token" */
+    "user": null, /* username if type == user */
+    "goal": 0, /* hash goal if type == token */
+    "opt_in":"1535695068.d3b61d11aef6c9ab1987428444feca95" /* Without this if not AuthedMine */
   }
 }
 
@@ -15,8 +15,8 @@
 {
   "type": "authed",
   "params": {
-    "token": "", //if type == token
-    "hashes": 0 //total hashes of current user if type == user (?)
+    "token": "", /* if type == token */
+    "hashes": 0 /* total hashes of current user if type == user (?) */
   }
 }
 
@@ -45,7 +45,7 @@
 {
   "type": "hash_accepted",
   "params": {
-    "hashes": 256 //Increase from 0
+    "hashes": 256 /* Increase from 0 */
   }
 }
 
@@ -53,7 +53,7 @@
 {
   "type": "error",
   "params": {
-    "error": "" //Error details
+    "error": "" /* Error details */
   }
 }
 
@@ -73,9 +73,9 @@
 {
   "type": "verified",
   "params": {
-    verify_id: 611010523,
-    verified: true,
-    result: "2e7aa4d28ee6bca8e37b004d1bf3daf933d89c3101ca796f6051395ed6624b00"
+    "verify_id": 611010523,
+    "verified": true,
+    "result": "2e7aa4d28ee6bca8e37b004d1bf3daf933d89c3101ca796f6051395ed6624b00"
   }
 }
 

@@ -8,7 +8,7 @@
 1. `pip install websocket-client`
 2. 下载libcryptohive的源码（链接见上）并编译
 3. 修改 `HiveMiner.py` 中的 `SITEKEY` 和 `LIBCH` 为自己想要的值
-4. `python HiveMiner.py`
+4. `python HiveMiner.py`  
 一份不完整的CoinHive协议参考参见 `CoinHiveProtocol.json`
   
 ## 开源许可 ##

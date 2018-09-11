@@ -234,18 +234,18 @@ def main():
   WSRecv.start()
 
   try:
-   print("[I][WS] Send thread ready")
-   while WSRecv.isAlive():
-     try:
-       Msg = json.dumps(QSend.get(block = False))
-     except queue.Empty:
-       time.sleep(0.1)
-       continue
-     try:
-       SocketWS.send(Msg.encode(encoding = "ascii"))
-       if DEBUG: print("[D][WS] SEND " + Msg)
-     except:
-       print("[E][WS] SEND FAILED" + Msg)
+    print("[I][WS] Send thread ready")
+    while WSRecv.isAlive():
+      try:
+        Msg = json.dumps(QSend.get(block = False))
+      except queue.Empty:
+        time.sleep(0.1)
+        continue
+      try:
+        SocketWS.send(Msg.encode(encoding = "ascii"))
+        if DEBUG: print("[D][WS] SEND " + Msg)
+      except:
+        print("[E][WS] SEND FAILED" + Msg)
   except KeyboardInterrupt:
     print("[I] ^C Received")
   quit(0)

@@ -25,8 +25,11 @@ DEBUG = False
 #You might want to redirect output to elsewhere if set to True
 TRACE = False
 
-#Server list from CoinHive JS
-SERVERS = [
+#Current CoinHive JS Version (CoinHive.VERSION)
+CHVERSION = 9
+
+#Server list from CoinHive JS (CoinHive.CONFIG.WEBSOCKET_SHARDS)
+CHSERVERS = [
   "wss://ws001.coinhive.com/proxy", "wss://ws002.coinhive.com/proxy", "wss://ws003.coinhive.com/proxy", "wss://ws004.coinhive.com/proxy",
   "wss://ws005.coinhive.com/proxy", "wss://ws006.coinhive.com/proxy", "wss://ws007.coinhive.com/proxy", "wss://ws008.coinhive.com/proxy",
   "wss://ws009.coinhive.com/proxy", "wss://ws010.coinhive.com/proxy", "wss://ws011.coinhive.com/proxy", "wss://ws012.coinhive.com/proxy",
@@ -73,9 +76,9 @@ def ProcSvr(Msg):
     target = binascii.unhexlify(MsgData["params"]["target"])
     targetFull = bytearray(8)
     if len(target) <= 8:
-      for i in range(0, len(target)):
+      for i in range(len(target)):
         targetFull[len(targetFull) - i - 1] = target[len(target) - i - 1]
-      for i in range(0, len(targetFull) - len(target)):
+      for i in range(len(targetFull) - len(target)):
         targetFull[i] = 0xff
     else:
       targetFull = target
@@ -113,7 +116,7 @@ def ProcSvr(Msg):
 
 def MeetsTarget(result, target):
   #Translated from CoinHive's CryptonightWASMWrapper.prototype.meetsTarget
-  for i in range(0, len(target)):
+  for i in range(len(target)):
     ri = len(result) - i - 1
     ti = len(target) - i - 1
     if result[ri] > target[ti]: return False
@@ -142,9 +145,12 @@ def WorkerFunc(WorkerNo):
     if Job["jobChanged"] & 1 << WorkerNo:
       if DEBUG: print("[D][CLI] %d: New job" % WorkerNo)
 
-      for i in range(0, len(Job["blob"])): blob[i] = Job["blob"][i]
+      for i in range(len(Job["blob"])): blob[i] = Job["blob"][i]
 
-      if blob[0] == b'\x07':
+      #type(blob[0]) == bytes, type(blob[0][0]) == int
+      if blob[0][0] > 7:
+        Hash = libch.cryptohive_hash_v2_Q
+      elif blob[0][0] == 7:
         Hash = libch.cryptohive_hash_v1_Q
       else:
         Hash = libch.cryptohive_hash_v0_Q
@@ -152,7 +158,7 @@ def WorkerFunc(WorkerNo):
       Job["jobChanged"] &= ~(1 << WorkerNo)
 
     nonce = random.randint(0, 0xffffffff).to_bytes(length = 4, byteorder = "big")
-    for i in range(0, 4):
+    for i in range(4):
       blob[i + 39] = nonce[i]
 
     Hash()
@@ -165,7 +171,7 @@ def WorkerFunc(WorkerNo):
       Ret = {
         "type":"submit",
         "params": {
-          "version": 7,
+          "version": CHVERSION,
           "job_id": Job["job_id"],
           "nonce": binascii.hexlify(nonce).decode(),
           "result": binascii.hexlify(result).decode()
@@ -182,7 +188,7 @@ def WSRecvFunc():
   global SocketWS
   print("[I][WS] Recv thread started")
   try:
-    Server = random.choice(SERVERS)
+    Server = random.choice(CHSERVERS)
     print("[I][WS] Chosen server is " + Server)
     SocketWS.connect(Server)
   except:
@@ -191,7 +197,7 @@ def WSRecvFunc():
   print("[I][WS] Connected")
 
   Workers = [None] * THREADS
-  for i in range(0, THREADS):
+  for i in range(THREADS):
     Workers[i] = threading.Thread(name = "Worker %d" % i, target = WorkerFunc, args = (i, ))
     Workers[i].setDaemon(True)
     Workers[i].start()
@@ -199,7 +205,7 @@ def WSRecvFunc():
   Ret = {
     "type": "auth",
     "params": {
-      "version": 7,
+      "version": CHVERSION,
       "site_key": SITEKEY,
       "type": "anonymous",
       "user": None,

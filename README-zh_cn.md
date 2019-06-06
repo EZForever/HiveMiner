@@ -1,6 +1,9 @@
 # HiveMiner #
 使用 [libcryptohive](https://github.com/EZForever/libcryptohive) 实现的CoinHive挖矿程序
   
+## 停止维护 ##
+[CoinHive 关门大吉了。](https://jsecoin.com/coinhive-closing-down/)
+  
 ## 使用方法 ##
 *注意：  
 本程序仅用于个人测试用途，开发者不保证程序是否存在BUG或是否能稳定运行。  
